@@ -1,55 +1,129 @@
 const express = require('express');
 const mysql = require('mysql');
 // const bodyParser = require('body-parser');
-const cors=require('cors')
+const cors = require('cors')
 const app = express();
 app.use(express.json())
 // const bodyParser=require('body-parser');
-const port= process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'bfinIT',
-  });
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'bfinIT',
+});
 
-app.get('/',(req,res)=>{
-    res.send('Bfin it server running');
- })
+app.get('/', (req, res) => {
+  res.send('Bfin it server running');
+})
 
- app.post('/business', (req, res) => {
-  const newses = req.body;
-  console.log(newses);
-  const { name, email, contact } = newses;
-  const sql = 'INSERT INTO employee (name, email, contact) VALUES (?, ?, ?)';
-  const params = [name, email, contact];
 
-  db.query(sql, params, (err, result) => {
+app.post('/news', (req, res) => {
+  const allNewsData = req.body;
+  console.log(allNewsData.data.length);
+
+  for (let i = 0; i < allNewsData.data.length; i++) {
+    const { id, author, content, date, imageUrl, time, title } = allNewsData.data[i];
+    const sql = 'INSERT INTO allnews (id, author, content,date,imageUrl,time,title) VALUES (?, ?, ?,?,?,?,?)';
+    const params = [id, author, content, date, imageUrl, time, title];
+
+    db.query(sql, params, (err, result) => {
+      if (err) {
+        console.error('Error saving data to database:', err);
+        res.status(500).send('Error saving data to database');
+        return;
+      }
+      console.log('Data saved to database!');
+      // res.send(result);
+    });
+  }
+
+});
+
+
+//final
+// app.post('/news', (req, res) => {
+//   const allNewsData = req.body;
+//   console.log(allNewsData.data);
+//   const { id, author, content, date, imageUrl, time, title } = allNewsData.data;
+//   const sql = 'INSERT INTO allnews (id, author, content,date,imageUrl,time,title) VALUES (?, ?, ?,?,?,?,?)';
+//   const params = [id, author, content, date, imageUrl, time, title];
+
+//   db.query(sql, params, (err, result) => {
+//     if (err) {
+//       console.error('Error saving data to database:', err);
+//       res.status(500).send('Error saving data to database');
+//       return;
+//     }
+//     console.log('Data saved to database!');
+//     res.send(result);
+//   });
+
+// });
+
+
+// app.post('/business', (req, res) => {
+//   const newses = req.body;
+//   console.log(newses);
+//   const { id, author, content, date, imageUrl, time, title } = newses;
+//   const sql = 'INSERT INTO allnews (id, author, content,date,imageUrl,time,title) VALUES (?, ?, ?,?,?,?,?)';
+//   const params = [id, author, content, date, imageUrl, time, title];
+
+//   db.query(sql, params, (err, result) => {
+//     if (err) {
+//       console.error('Error saving data to database:', err);
+//       res.status(500).send('Error saving data to database');
+//       return;
+//     }
+//     console.log('Data saved to database!');
+//     res.send(result);
+//   });
+// });
+
+app.delete('/delete/:id', (req, res) => {
+  const {id}=req.params;
+  const sql = `DELETE FROM allnews WHERE id = ?`;
+
+  db.query(sql, id, (err, result) => {
     if (err) {
-      console.error('Error saving data to database:', err);
-      res.status(500).send('Error saving data to database');
-      return;
+      console.log(err);
+      res.sendStatus(500);
+    } else {
+      console.log(result);
+      res.sendStatus(200);
     }
-    console.log('Data saved to database!');
-    res.send('Data saved to database!');
+  });
+});
+
+
+app.get("/news/:id", (req, res) => {
+  const { id } = req.params;
+  const query = "SELECT * FROM allnews WHERE id = ?";
+
+  db.query(query, id, (err, results) => {
+    if (err) throw err;
+
+    if (results.length > 0) {
+      res.send(results[0]);
+    } else {
+      res.status(404).send({ message: "News not found" });
+    }
   });
 });
 
 
 
-
-
- //get data from local database mysql(xampp)
-    app.get('/users',(req,res)=>{
-        const sql = `SELECT * FROM employee`;
-        db.query(sql, (err, data) => {
-           if(err) return res.json(err);
-           return res.json(data);
-          });
-    })
+//get data from local database mysql(xampp)
+app.get('/news', (req, res) => {
+  const sql = `SELECT * FROM allnews`;
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+})
 
 
 app.listen(port, () => {
