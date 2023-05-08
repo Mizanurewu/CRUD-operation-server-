@@ -82,9 +82,20 @@ app.post('/news', (req, res) => {
 //     res.send(result);
 //   });
 // });
+app.put('/update/:id', (req, res) => {
+  const { author, title, imageUrl, time, date, content } = req.body;
+  const id = req.params.id;
+  const sqlUpdate = "UPDATE allnews SET author=?, title=?, imageUrl=?, time=?, date=?, content=? WHERE id = ?";
+  db.query(sqlUpdate, [author, title, imageUrl, time, date, content, id], (err, result) => {
+    if (err) throw err;
+    console.log(result);
+    res.send('Record updated successfully!');
+  });
+});
+
 
 app.delete('/delete/:id', (req, res) => {
-  const {id}=req.params;
+  const { id } = req.params;
   const sql = `DELETE FROM allnews WHERE id = ?`;
 
   db.query(sql, id, (err, result) => {
@@ -100,6 +111,21 @@ app.delete('/delete/:id', (req, res) => {
 
 
 app.get("/news/:id", (req, res) => {
+  const { id } = req.params;
+  const query = "SELECT * FROM allnews WHERE id = ?";
+
+  db.query(query, id, (err, results) => {
+    if (err) throw err;
+
+    if (results.length > 0) {
+      res.send(results[0]);
+    } else {
+      res.status(404).send({ message: "News not found" });
+    }
+  });
+});
+
+app.get("/update-news/:id", (req, res) => {
   const { id } = req.params;
   const query = "SELECT * FROM allnews WHERE id = ?";
 
