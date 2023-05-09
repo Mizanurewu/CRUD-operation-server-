@@ -23,7 +23,10 @@ app.get('/', (req, res) => {
 
 app.post('/news', (req, res) => {
   const allNewsData = req.body;
-  console.log(allNewsData.data.length);
+  if(allNewsData.length<=0){
+    return;
+  }
+  
 
   for (let i = 0; i < allNewsData.data.length; i++) {
     const { id, author, content, date, imageUrl, time, title } = allNewsData.data[i];
@@ -84,6 +87,7 @@ app.post('/news', (req, res) => {
 // });
 app.put('/update/:id', (req, res) => {
   const { author, title, imageUrl, time, date, content } = req.body;
+  console.log(content)
   const id = req.params.id;
   const sqlUpdate = "UPDATE allnews SET author=?, title=?, imageUrl=?, time=?, date=?, content=? WHERE id = ?";
   db.query(sqlUpdate, [author, title, imageUrl, time, date, content, id], (err, result) => {
